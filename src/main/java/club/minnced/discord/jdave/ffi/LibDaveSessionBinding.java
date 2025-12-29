@@ -82,7 +82,7 @@ public class LibDaveSessionBinding {
             //   DAVESessionHandle session, uint8_t* externalSender, size_t length);
             daveSessionSetExternalSender = LINKER.downcallHandle(
                     SYMBOL_LOOKUP.find("daveSessionSetExternalSender").orElseThrow(),
-                    FunctionDescriptor.ofVoid(ADDRESS, ADDRESS.withTargetLayout(JAVA_BYTE), C_SIZE));
+                    FunctionDescriptor.ofVoid(ADDRESS, ADDRESS, C_SIZE));
 
             // void daveSessionProcessProposals(
             //   DAVESessionHandle session, uint8_t* proposals, size_t length, char** recognizedUserIds,
@@ -102,7 +102,7 @@ public class LibDaveSessionBinding {
             //   DAVESessionHandle session, uint8_t* commit, size_t length);
             daveSessionProcessCommit = LINKER.downcallHandle(
                     SYMBOL_LOOKUP.find("daveSessionProcessCommit").orElseThrow(),
-                    FunctionDescriptor.of(ADDRESS, ADDRESS, ADDRESS.withTargetLayout(JAVA_BYTE), C_SIZE));
+                    FunctionDescriptor.of(ADDRESS, ADDRESS, ADDRESS, C_SIZE));
 
             // bool daveCommitResultIsIgnored(DAVECommitResultHandle commitResultHandle);
             daveCommitResultIsIgnored = LINKER.downcallHandle(
@@ -123,7 +123,7 @@ public class LibDaveSessionBinding {
             // recognizedUserIdsLength);
             daveSessionProcessWelcome = LINKER.downcallHandle(
                     SYMBOL_LOOKUP.find("daveSessionProcessWelcome").orElseThrow(),
-                    FunctionDescriptor.of(ADDRESS, ADDRESS.withTargetLayout(JAVA_BYTE), C_SIZE, ADDRESS, C_SIZE));
+                    FunctionDescriptor.of(ADDRESS, ADDRESS, C_SIZE, ADDRESS, C_SIZE));
 
             // void daveWelcomeResultDestroy(DAVEWelcomeResultHandle welcomeResultHandle);
             daveWelcomeResultDestroy = LINKER.downcallHandle(

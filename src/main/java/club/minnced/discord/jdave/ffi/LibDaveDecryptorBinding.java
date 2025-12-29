@@ -42,9 +42,9 @@ public class LibDaveDecryptorBinding {
                             JAVA_INT,
                             ADDRESS,
                             JAVA_INT,
-                            ADDRESS.withTargetLayout(JAVA_BYTE),
+                            ADDRESS,
                             C_SIZE,
-                            ADDRESS.withTargetLayout(JAVA_BYTE),
+                            ADDRESS,
                             C_SIZE,
                             ADDRESS.withTargetLayout(C_SIZE)));
 
