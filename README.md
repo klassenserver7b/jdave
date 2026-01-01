@@ -14,6 +14,17 @@ To implement these bindings, this library uses Java **Foreign Function & Memory 
 
 - Linux x64
 
+## Example: JDA
+
+To use this library with [JDA](https://github.com/discord-jda/JDA), you can use the [JDaveSessionFactory](src/main/java/club/minnced/discord/jdave/interop/JDaveSessionFactory.java) to configure the audio module:
+
+```java
+JDABuilder.createLight(TOKEN)
+  .setAudioModuleConfig(new AudioModuleConfig()
+    .withDaveSessionFactory(new JDaveSessionFactory()))
+  .build()
+```
+
 ---
 
 # ⚠️ This implementation is work-in-progress and not completed.
