@@ -13,7 +13,7 @@ data class Platform(
     val musl: Boolean,
 ) {
     companion object {
-        fun parse(triplet: String = "x86_64-unknown-linux-gnu"): Platform {
+        fun parse(triplet: String): Platform {
             return Platform(
                 operatingSystem = OperatingSystem.parse(triplet),
                 arch = Architecture.parse(triplet),

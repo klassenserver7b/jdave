@@ -7,7 +7,10 @@ import java.lang.foreign.Arena;
 import java.lang.foreign.SymbolLookup;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
+import java.util.StringJoiner;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 public class NativeLibraryLoader {
     @NonNull
@@ -26,8 +29,10 @@ public class NativeLibraryLoader {
             }
 
             Path tempDirectory = Files.createTempDirectory("jdave");
-            Path tempFile =
-                    Files.createTempFile(tempDirectory, nativeLibrary.libraryName(), "." + nativeLibrary.extension());
+            Path tempFile = Files.createTempFile(
+                    tempDirectory,
+                    nativeLibrary.libraryName(),
+                    "." + nativeLibrary.os().getLibraryExtension());
 
             try (OutputStream outputStream = Files.newOutputStream(tempFile)) {
                 library.transferTo(outputStream);
@@ -47,63 +52,124 @@ public class NativeLibraryLoader {
 
     @NonNull
     public static NativeLibrary resolveLibrary(@NonNull String baseName) {
-        String os = normalizeOs(System.getProperty("os.name"));
-        String arch = normalizeArch(System.getProperty("os.arch"));
-
-        String platform = os + "-" + arch;
-        String prefix = libraryPrefix(os);
-        String extension = libraryExtension(os);
-
-        return new NativeLibrary(platform, prefix + baseName, extension);
+        return resolveLibrary(baseName, System.getProperty("os.name"), System.getProperty("os.arch"));
     }
 
     @NonNull
-    private static String normalizeOs(@NonNull String osName) {
+    public static NativeLibrary resolveLibrary(
+            @NonNull String baseName, @NonNull String osName, @NonNull String archName) {
+        OperatingSystem os = getOperatingSystem(osName);
+
+        if (os == OperatingSystem.MACOS) {
+            return new NativeLibrary(OperatingSystem.MACOS, Architecture.DARWIN, baseName);
+        }
+
+        Architecture arch = getArchitecture(archName);
+        return new NativeLibrary(os, arch, baseName);
+    }
+
+    @NonNull
+    private static OperatingSystem getOperatingSystem(@NonNull String osName) {
         osName = osName.toLowerCase();
-        if (osName.contains("win")) {
-            return "win";
+        if (osName.contains("linux")) {
+            return OperatingSystem.LINUX;
         }
         if (osName.contains("mac") || osName.contains("darwin")) {
-            return "macos";
+            return OperatingSystem.MACOS;
         }
-        if (osName.contains("linux")) {
-            return "linux";
+        if (osName.contains("win")) {
+            return OperatingSystem.WINDOWS;
         }
         throw new UnsupportedOperationException("Unsupported OS: " + osName);
     }
 
     @NonNull
-    private static String normalizeArch(@NonNull String arch) {
+    private static Architecture getArchitecture(@NonNull String arch) {
         arch = arch.toLowerCase();
         return switch (arch) {
-            case "x86_64", "amd64" -> "x86-64";
-            case "aarch64", "arm64" -> "aarch64";
-            case "x86", "i386", "i486", "i586", "i686" -> "x86";
+            case "x86_64", "amd64" -> Architecture.X86_64;
+            case "aarch64", "arm64" -> Architecture.AARCH64;
+            case "x86", "i386", "i486", "i586", "i686" -> Architecture.X86;
+            case "darwin" -> Architecture.DARWIN;
             default -> throw new UnsupportedOperationException("Unsupported arch: " + arch);
         };
     }
 
-    @NonNull
-    private static String libraryPrefix(@NonNull String os) {
-        return os.equals("win") ? "" : "lib";
-    }
-
-    @NonNull
-    private static String libraryExtension(@NonNull String os) {
-        return switch (os) {
-            case "win" -> "dll";
-            case "macos" -> "dylib";
-            case "linux" -> "so";
-            default -> throw new AssertionError(os);
-        };
-    }
-
     public record NativeLibrary(
-            @NonNull String platform,
-            @NonNull String libraryName,
-            @NonNull String extension) {
+            @NonNull OperatingSystem os,
+            @NonNull Architecture arch,
+            @NonNull String libraryName) {
         public String resourcePath() {
-            return "/natives/" + platform + "/" + libraryName + "." + extension;
+            StringJoiner path = new StringJoiner("/");
+            path.add("/natives");
+
+            StringJoiner platform = new StringJoiner("-");
+            platform.add(os.key);
+            if (arch.key != null) {
+                platform.add(arch.key);
+            }
+
+            path.add(platform.toString());
+            path.add(os.getLibraryName(libraryName));
+
+            return path.toString();
+        }
+    }
+
+    public enum OperatingSystem {
+        LINUX("linux", "lib", "so"),
+        MACOS("darwin", "lib", "dylib"),
+        WINDOWS("win", "", "dll"),
+        ;
+
+        private final String key;
+        private final String libraryPrefix;
+        private final String libraryExtension;
+
+        OperatingSystem(String key, String libraryPrefix, String libraryExtension) {
+            this.key = key;
+            this.libraryPrefix = libraryPrefix;
+            this.libraryExtension = libraryExtension;
+        }
+
+        @NonNull
+        public String getKey() {
+            return key;
+        }
+
+        @NonNull
+        public String getLibraryPrefix() {
+            return libraryPrefix;
+        }
+
+        @NonNull
+        public String getLibraryExtension() {
+            return libraryExtension;
+        }
+
+        @NonNull
+        public String getLibraryName(@NonNull String name) {
+            return String.format(Locale.ROOT, "%s%s.%s", libraryPrefix, name, libraryExtension);
+        }
+    }
+
+    public enum Architecture {
+        X86("x86"),
+        X86_64("x86-64"),
+        ARM("arm"),
+        AARCH64("aarch64"),
+        DARWIN(null),
+        ;
+
+        private final String key;
+
+        Architecture(String key) {
+            this.key = key;
+        }
+
+        @Nullable
+        public String getKey() {
+            return key;
         }
     }
 }
