@@ -1,8 +1,7 @@
 package club.minnced.discord.jdave;
 
-import static club.minnced.discord.jdave.ffi.NativeUtils.isNull;
-
 import club.minnced.discord.jdave.ffi.LibDaveKeyRatchetBinding;
+import club.minnced.discord.jdave.ffi.NativeUtils;
 import java.lang.foreign.MemorySegment;
 import org.jspecify.annotations.NonNull;
 
@@ -22,6 +21,10 @@ public class DaveKeyRatchet implements AutoCloseable {
         return new DaveKeyRatchet(session.getKeyRatchet(userId));
     }
 
+    public boolean isNull() {
+        return NativeUtils.isNull(keyRatchet);
+    }
+
     @NonNull
     public MemorySegment getMemorySegment() {
         return keyRatchet;
@@ -29,7 +32,7 @@ public class DaveKeyRatchet implements AutoCloseable {
 
     @Override
     public void close() {
-        if (!isNull(keyRatchet)) {
+        if (!isNull()) {
             LibDaveKeyRatchetBinding.destroyKeyRatchet(this.keyRatchet);
         }
     }

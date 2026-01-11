@@ -48,16 +48,22 @@ public class DaveEncryptor implements AutoCloseable {
         boolean disabled = protocolVersion == DaveConstants.DISABLED_PROTOCOL_VERSION;
 
         if (!disabled) {
-            updateKeyRatchet();
+            disabled = updateKeyRatchet();
         }
 
-        LibDaveEncryptorBinding.setPassthroughMode(encryptor, disabled);
+        transitionToPassthrough(disabled);
     }
 
-    private void updateKeyRatchet() {
+    private void transitionToPassthrough(boolean passthrough) {
+        log.debug("Transitioning to passthrough mode: {}", passthrough);
+        LibDaveEncryptorBinding.setPassthroughMode(encryptor, passthrough);
+    }
+
+    private boolean updateKeyRatchet() {
         try (DaveKeyRatchet keyRatchet = DaveKeyRatchet.create(session, Long.toUnsignedString(selfUserId))) {
             log.debug("Updating key ratchet");
             LibDaveEncryptorBinding.setKeyRatchet(encryptor, keyRatchet.getMemorySegment());
+            return keyRatchet.isNull();
         }
     }
 
