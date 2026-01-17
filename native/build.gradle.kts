@@ -21,22 +21,11 @@ dependencies {
 }
 
 fun getArtifactName(): String {
-    return getPlatform().run {
-        when {
-            operatingSystem == OperatingSystem.Windows && arch == Architecture.X86_64 ->
-                "Windows-x86_64.zip"
-            operatingSystem == OperatingSystem.Linux && arch == Architecture.X86_64 ->
-                "Linux-x86_64.zip"
-            operatingSystem == OperatingSystem.Linux && arch == Architecture.AARCH64 ->
-                "Linux-aarch64.zip"
-            operatingSystem == OperatingSystem.MacOS -> "Darwin.zip"
-            else -> error("Unsupported platform: $this")
-        }
-    }
+    return "libdave.so"
 }
 
 fun getArtifactDownloadUrl(): String {
-    return "https://github.com/MinnDevelopment/libdave/releases/download/v1.1.0/${getArtifactName()}"
+    return "https://github.com/klassenserver7b/jdave/releases/download/1.5/${getArtifactName()}"
 }
 
 val nativeResourceRoot = "resources/libdave"
