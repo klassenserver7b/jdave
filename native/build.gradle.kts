@@ -43,7 +43,7 @@ val assembleNatives by
     tasks.registering(Copy::class) {
         dependsOn(downloadNatives)
 
-        from(zipTree(downloadDir.get().file(getArtifactName()))) {
+        from(downloadDir.get().file(getArtifactName())) {
             include {
                 it.name.endsWith(".so") || it.name.endsWith(".dll") || it.name.endsWith(".dylib")
             }
